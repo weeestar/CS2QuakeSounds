@@ -101,263 +101,70 @@ public class KillSoundGoldKingZ : BasePlugin
 
     private HookResult OnPlayerDeath(EventPlayerDeath @event, GameEventInfo info)
     {
-        if(@event == null)return HookResult.Continue;
-        var victim = @event.Userid;
-        var attacker = @event.Attacker;
+	    if (@event == null || @event.Userid == null || !@event.Userid.IsValid || @event.Attacker == null || !@event.Attacker.IsValid || @event.Attacker.IsBot)
+	        return HookResult.Continue;
+	
+	    var victim = @event.Userid;
+	    var attacker = @event.Attacker;
+	    var victimteam = victim.TeamNum;
+	    var attackerteam = attacker.TeamNum;
+	    var headshot = @event.Headshot;
+	
+	    if (attacker == victim || string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath) && string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath))
+	        return HookResult.Continue;
+	
+	    Helper.PersonData personData = Helper.RetrievePersonDataById(attacker.SteamID);
+	
+	    if (headshot && Configs.GetConfigData().KS_DefaultValue_HeadShotKillSound)
+	    {
+	        if (!personData.headshotkill && (ConVar.Find("mp_teammates_are_enemies")?.GetPrimitiveValue<bool>() ?? false) || attackerteam != victimteam)
+	        {
+	            attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath);
+	        }
+	    }
+	    else if (!headshot && Configs.GetConfigData().KS_DefaultValue_BodyKillSound)
+	    {
+	        if (!personData.bodyshotkill && (ConVar.Find("mp_teammates_are_enemies")?.GetPrimitiveValue<bool>() ?? false) || attackerteam != victimteam)
+	        {
+	            attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath);
+	        }
+	    }
 
-        if (victim == null || !victim.IsValid)return HookResult.Continue;
-        var victimteam = victim.TeamNum;
-        if (attacker == null || !attacker.IsValid || attacker.IsBot)return HookResult.Continue;
-        var headshot = @event.Headshot;
-        var attackerteam = attacker.TeamNum;
-        var attackerid = attacker.SteamID;
-        Helper.PersonData personData = Helper.RetrievePersonDataById(attackerid);
-        DateTime personDate = DateTime.Now;
-
-        if (attacker != victim)
-        {
-            if(headshot)
-            {
-                if (!string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath))
-                {
-                    if(ConVar.Find("mp_teammates_are_enemies")!.GetPrimitiveValue<bool>() == false)
-                    {
-                        if(attackerteam != victimteam)
-                        {
-                            if(Configs.GetConfigData().KS_DefaultValue_HeadShotKillSound)
-                            {
-                                if (personData.headshotkill)
-                                {
-                                    //skip
-                                }else
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath);
-                                }
-                                
-                            }else
-                            {
-                                if (personData.headshotkill)
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath);
-                                }else
-                                {
-                                    //skip
-                                }
-                            }
-                            
-                        }
-                    }else
-                    {
-                        if(Configs.GetConfigData().KS_DefaultValue_HeadShotKillSound)
-                        {
-                            if (personData.headshotkill)
-                            {
-                                //skip
-                            }else
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath);
-                            }
-                            
-                        }else
-                        {
-                            if (personData.headshotkill)
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotKillSoundPath);
-                            }else
-                            {
-                                //skip
-                            }
-                        }
-                    }
-                }
-            }else
-            {
-                if (!string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath))
-                {
-                    if(ConVar.Find("mp_teammates_are_enemies")!.GetPrimitiveValue<bool>() == false)
-                    {
-                        if(attackerteam != victimteam)
-                        {
-                            if(Configs.GetConfigData().KS_DefaultValue_BodyKillSound)
-                            {
-                                if (personData.bodyshotkill)
-                                {
-                                    //skip
-                                }else
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath);
-                                }
-                                
-                            }else
-                            {
-                                if (personData.bodyshotkill)
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath);
-                                }else
-                                {
-                                    //skip
-                                }
-                            }
-                            
-                        }
-                    }else
-                    {
-                        if(Configs.GetConfigData().KS_DefaultValue_BodyKillSound)
-                        {
-                            if (personData.bodyshotkill)
-                            {
-                                //skip
-                            }else
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath);
-                            }
-                            
-                        }else
-                        {
-                            if (personData.bodyshotkill)
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyKillSoundPath);
-                            }else
-                            {
-                                //skip
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return HookResult.Continue;
+    return HookResult.Continue;
     }
+
     private HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
     {
-        if(@event == null)return HookResult.Continue;
-        var victim = @event.Userid;
-        var attacker = @event.Attacker;
-        var hitgroup = @event.Hitgroup;
-
-        if (victim == null || !victim.IsValid)return HookResult.Continue;
-        var victimteam = victim.TeamNum;
-        if (attacker == null || !attacker.IsValid || attacker.IsBot)return HookResult.Continue;
-        var attackerteam = attacker.TeamNum;
-        var attackerid = attacker.SteamID;
-        Helper.PersonData personData = Helper.RetrievePersonDataById(attackerid);
-        DateTime personDate = DateTime.Now;
-
-        if (attacker != victim)
-        {
-            if(hitgroup == 1)
-            {
-                if (!string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath))
-                {
-                    if(ConVar.Find("mp_teammates_are_enemies")!.GetPrimitiveValue<bool>() == false)
-                    {
-                        if(attackerteam != victimteam)
-                        {
-                            if(Configs.GetConfigData().KS_DefaultValue_HeadShotHitSound)
-                            {
-                                if (personData.headshothit)
-                                {
-                                    //skip
-                                }else
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath);
-                                }
-                                
-                            }else
-                            {
-                                if (personData.headshothit)
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath);
-                                }else
-                                {
-                                    //skip
-                                }
-                            }
-
-                            
-                        }
-                    }else
-                    {
-                        if(Configs.GetConfigData().KS_DefaultValue_HeadShotHitSound)
-                        {
-                            if (personData.headshothit)
-                            {
-                                //skip
-                            }else
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath);
-                            }
-                            
-                        }else
-                        {
-                            if (personData.headshothit)
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath);
-                            }else
-                            {
-                                //skip
-                            }
-                        }
-                    }
-                    
-                }
-            }else
-            {
-                if (!string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath))
-                {
-                    if(ConVar.Find("mp_teammates_are_enemies")!.GetPrimitiveValue<bool>() == false)
-                    {
-                        if(attackerteam != victimteam)
-                        {
-                            if(Configs.GetConfigData().KS_DefaultValue_BodyHitSound)
-                            {
-                                if (personData.bodyshothit)
-                                {
-                                    //skip
-                                }else
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath);
-                                }
-                                
-                            }else
-                            {
-                                if (personData.bodyshothit)
-                                {
-                                    attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath);
-                                }else
-                                {
-                                    //skip
-                                }
-                            }
-                        }
-                    }else
-                    {
-                        if(Configs.GetConfigData().KS_DefaultValue_BodyHitSound)
-                        {
-                            if (personData.bodyshothit)
-                            {
-                                //skip
-                            }else
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath);
-                            }
-                            
-                        }else
-                        {
-                            if (personData.bodyshothit)
-                            {
-                                attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath);
-                            }else
-                            {
-                                //skip
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return HookResult.Continue;
+	    if (@event == null || @event.Userid == null || !@event.Userid.IsValid || @event.Attacker == null || !@event.Attacker.IsValid || @event.Attacker.IsBot)
+	        return HookResult.Continue;
+	
+	    var victim = @event.Userid;
+	    var attacker = @event.Attacker;
+	    var hitgroup = @event.Hitgroup;
+	    var victimteam = victim.TeamNum;
+	    var attackerteam = attacker.TeamNum;
+	
+	    if (attacker == victim || string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath) && string.IsNullOrEmpty(Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath))
+	        return HookResult.Continue;
+	
+	    Helper.PersonData personData = Helper.RetrievePersonDataById(attacker.SteamID);
+	
+	    if (hitgroup == 1 && Configs.GetConfigData().KS_DefaultValue_HeadShotHitSound)
+	    {
+	        if (!personData.headshothit && (!ConVar.Find("mp_teammates_are_enemies")?.GetPrimitiveValue<bool>() ?? false) || attackerteam != victimteam)
+	        {
+	            attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_HeadShotHitSoundPath);
+	        }
+	    }
+	    else if (Configs.GetConfigData().KS_DefaultValue_BodyHitSound)
+	    {
+	        if (!personData.bodyshothit && (!ConVar.Find("mp_teammates_are_enemies")?.GetPrimitiveValue<bool>() ?? false) || attackerteam != victimteam)
+	        {
+	            attacker.ExecuteClientCommand("play " + Configs.GetConfigData().KS_AddMenu_BodyHitSoundPath);
+	        }
+	    }
+	
+	    return HookResult.Continue;
     }
 
     private HookResult OnPlayerDeathQuake(EventPlayerDeath @event, GameEventInfo info)
